@@ -21,15 +21,17 @@ body {
     overflow-x: hidden;
 }
 
-/* ---------- Floating hearts (reduced) ---------- */
+/* ---------- Floating hearts ---------- */
 .heart {
     position: absolute;
+    top: -40px;
     width: 20px;
     height: 20px;
     background: rgba(255,105,180,0.7);
     transform: rotate(45deg);
     animation: float 6s linear infinite;
     filter: drop-shadow(0 0 8px rgba(255,105,180,0.7));
+    z-index: 1;
 }
 
 .heart::before,
@@ -46,8 +48,8 @@ body {
 .heart::after { left: -10px; }
 
 @keyframes float {
-    from { transform: rotate(45deg) translateY(110vh); opacity: 0.8; }
-    to { transform: rotate(45deg) translateY(-120px); opacity: 0; }
+    from { transform: rotate(45deg) translateY(0); opacity: 0.8; }
+    to { transform: rotate(45deg) translateY(120vh); opacity: 0; }
 }
 
 /* ---------- Layout ---------- */
@@ -74,6 +76,16 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     gap: 1.5rem;
+    animation: popIn 0.9s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+@keyframes popIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ---------- Note card ---------- */
@@ -88,6 +100,10 @@ body {
     position: relative;
     transition: 0.3s;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .note-card:hover {
@@ -100,6 +116,21 @@ body {
     background: rgba(255,255,255,0.08);
     cursor: not-allowed;
     box-shadow: none;
+}
+
+.note-card.unlocked:hover {
+    background: rgba(30,30,40,0.9);
+}
+
+.card-content {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,105,180,0.5);
+}
+
+.special-emoji {
+    font-size: 2.5rem;
 }
 
 .lock-icon {
@@ -115,6 +146,146 @@ body {
     margin-top: 0.4rem;
     font-size: 0.75rem;
     color: rgba(255,255,255,0.75);
+}
+
+/* ---------- Modal ---------- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: rgba(20,20,30,0.95);
+    padding: 2.5rem;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid var(--pink);
+    box-shadow: 0 0 40px rgba(255,42,109,0.4);
+    animation: slideUp 0.4s ease;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--pink);
+    font-size: 1.8rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.close-btn:hover {
+    background: rgba(255,42,109,0.2);
+    transform: rotate(90deg);
+}
+
+.modal-emoji {
+    font-size: 3.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    animation: pulse 2s infinite;
+}
+
+.modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--pink);
+    text-align: center;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(255,42,109,0.5);
+}
+
+.modal-date {
+    text-align: center;
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    font-style: italic;
+}
+
+.modal-body {
+    color: #ddd;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    padding: 1.5rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    border-left: 3px solid var(--pink);
+}
+
+.modal-body p {
+    margin: 1rem 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .notes-title {
+        font-size: 2.2rem;
+    }
+    
+    .notes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 1rem;
+    }
+    
+    .note-card {
+        height: 90px;
+    }
+    
+    .card-content {
+        font-size: 1.5rem;
+    }
+    
+    .special-emoji {
+        font-size: 2rem;
+    }
+    
+    .modal-content {
+        padding: 1.5rem;
+    }
 }
 </style>
 </head>
@@ -137,24 +308,55 @@ function createHeart() {
     setTimeout(() => h.remove(), 7000);
 }
 
+// Initialize hearts
 for (let i = 0; i < 8; i++) createHeart();
 setInterval(createHeart, 700);
 
-/* ---------- Notes logic ---------- */
+/* ---------- Notes data ---------- */
 const START_DATE = new Date(2025, 11, 14); // Dec 14, 2025
 const TOTAL_DAYS = 23;
 const grid = document.getElementById('notesGrid');
 
-const notes = Array.from({ length: TOTAL_DAYS }, (_, i) => ({
+// 23天的示例留言内容
+const notes = [
+    { title: "First Day", content: "Hi lottie, how are you? I hope you are having a good time in SA! You know, when you showed me your aparment, I was really imagining how life would be if we were on a vacation and can stay there together. We can do so many fun things togetherr, with the ocean view... Love ya" },
+    { title: "I love your haircut", content: "Hey babe, I know you got a haircut today haha. I really like it! Your hair has always been one of my favorite things about you - except for your sweet smile and squishy legs hehe. You know, speaking of your smile, it kind of reminds me of the Hershey's white chocolate bar. It's our chocolate, and I really like it - but you are lowkey sweeter than it 😉. " },
+    { title: "Rainy Day", content: "如果今天下雨，记得那是天空在为你跳舞。而我在这里，永远是你的晴天。" },
+    { title: "Midweek Sparkle", content: "周中最适合做一些特别的事。今天为你准备了一个小惊喜，希望它能让你微笑。" },
+    { title: "Friday Feeling", content: "星期五的夜晚最适合想念。如果星星有声音，那一定是我想你的频率。" },
+    { title: "Weekend Whispers", content: "周末时光总是特别温柔，就像你的笑容。愿你今天有美好的休息时光。" },
+    { title: "Sunday Serenity", content: "星期天的宁静最适合回忆。还记得我们第一次相遇的那天吗？那是我生命中最美的一天。" },
+    { title: "New Week", content: "新的一周开始，但有些东西永远不会改变——比如我对你的思念。" },
+    { title: "Little Things", content: "今天注意到路边的花开了。它们让我想起你——美丽而不自知。" },
+    { title: "Distance", content: "即使有距离，我的心也一直在你身边。因为真正的距离不是公里，而是想念。" },
+    { title: "Simple Joys", content: "有时候最简单的快乐就是知道你存在在这个世界上。感谢有你。" },
+    { title: "Midnight Thoughts", content: "深夜最适合写这些文字。希望当你读到时，能感受到我此刻的温柔。" },
+    { title: "Halfway There", content: "我们已经走过了一半的旅程。每一天都让我更加确信，选择你是最正确的决定。" },
+    { title: "Sweet Memories", content: "今天翻看了我们的照片，每一张都藏着一个小故事。你的笑容是我最珍贵的收藏。" },
+    { title: "Quiet Moments", content: "不是所有的爱都需要大声说出口。有时候安静的陪伴就是最深的告白。" },
+    { title: "Future Dreams", content: "我在想象我们的未来——充满笑声、冒险和无尽的爱。" },
+    { title: "Gratitude", content: "今天想特别感谢你。感谢你成为你，感谢你出现在我的生命中。" },
+    { title: "Starry Night", content: "今晚的星星特别亮。如果许愿能成真，我希望你能永远幸福。" },
+    { title: "Almost There", content: "旅程即将结束，但爱永远不会。这只是一个开始。" },
+    { title: "Last Few Days", content: "倒计时开始。每一天都更接近，每一天都想念更深。" },
+    { title: "Final Stretch", content: "就像等待第一场雪的孩子，我怀着最纯真的期待等待与你相见。" },
+    { title: "Christmas Eve ✨", content: "平安夜，最特别的夜晚。愿所有的星星都为你的笑容而闪耀，愿所有的祝福都围绕着你。你是我的奇迹，我的星星，我的一切。" },
+    { title: "Christmas Day 🎄", content: "圣诞节快乐，我的爱！如果圣诞老人问我想要什么礼物，我会说：'我已经拥有了最好的礼物——你。' 愿这一天充满温暖、爱与魔法。" }
+];
+
+// 创建完整的notes数组
+const notesData = Array.from({ length: TOTAL_DAYS }, (_, i) => ({
     index: i,
     date: new Date(
         START_DATE.getFullYear(),
         START_DATE.getMonth(),
         START_DATE.getDate() + i
     ),
-    content: '---' // 占位符
+    title: notes[i]?.title || `Day ${i + 1}`,
+    content: notes[i]?.content || `This is day ${i + 1} of my love for you, Charlotte. Every day with you in my thoughts is a blessing.`
 }));
 
+/* ---------- Unlock logic ---------- */
 function isUnlocked(index) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -171,52 +373,124 @@ function isUnlocked(index) {
     return false;
 }
 
-/* ---------- Emoji logic ---------- */
+/* ---------- Special emojis ---------- */
 function getSpecialEmoji(date) {
-    const month = date.getMonth();
-    const day = date.getDate();
+    const m = date.getMonth();
+    const d = date.getDate();
 
-    if (month === 11 && day === 24) return '🌟'; // Christmas Eve
-    if (month === 11 && day === 25) return '🎄'; // Christmas
+    if (m === 11 && d === 24) return '✨';
+    if (m === 11 && d === 25) return '🎄';
     return null;
 }
 
-/* ---------- Render ---------- */
+/* ---------- Display note modal ---------- */
+function showNoteModal(note) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    
+    const emoji = getSpecialEmoji(note.date);
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <button class="close-btn">×</button>
+            ${emoji ? `<div class="modal-emoji">${emoji}</div>` : ''}
+            <h2 class="modal-title">${note.title}</h2>
+            <div class="modal-date">
+                ${note.date.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                })}
+            </div>
+            <div class="modal-body">
+                <p>${note.content}</p>
+                <p style="text-align: center; margin-top: 2rem; color: var(--pink); font-style: italic;">
+                    Forever yours
+                </p>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close modal events
+    modal.querySelector('.close-btn').onclick = () => {
+        document.body.removeChild(modal);
+    };
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    };
+}
+
+/* ---------- Render notes grid ---------- */
 function renderNotes() {
     grid.innerHTML = '';
 
-    notes.forEach(note => {
+    notesData.forEach(note => {
         const unlocked = isUnlocked(note.index);
-        const specialEmoji = getSpecialEmoji(note.date);
-
+        
         const wrap = document.createElement('div');
         wrap.className = 'note-wrapper';
-
+        
         const card = document.createElement('div');
-        card.className = 'note-card' + (unlocked ? '' : ' locked');
-
+        card.className = unlocked ? 'note-card unlocked' : 'note-card locked';
+        
         if (!unlocked) {
+            // Locked card
             card.innerHTML = `<div class="lock-icon">🔒</div>`;
-            card.onclick = () =>
-                alert('Be patient you little pumpkin 🎃');
-        } else if (specialEmoji) {
-            card.innerHTML = `<div class="lock-icon">${specialEmoji}</div>`;
+            card.onclick = () => {
+                alert('Be patient you little pumpkin 😜\n\nCome back later to unlock this special note!');
+            };
+        } else {
+            // Unlocked card
+            const emoji = getSpecialEmoji(note.date);
+            let displayContent;
+            
+            if (emoji) {
+                displayContent = `<div class="card-content special-emoji">${emoji}</div>`;
+            } else {
+                // Show day number
+                let dayText;
+                const dayNum = note.index + 1;
+                if (dayNum === 1) dayText = '1st';
+                else if (dayNum === 2) dayText = '2nd';
+                else if (dayNum === 3) dayText = '3rd';
+                else dayText = `${dayNum}th`;
+                
+                displayContent = `<div class="card-content">${dayText}</div>`;
+            }
+            
+            card.innerHTML = displayContent;
+            card.onclick = () => showNoteModal(note);
         }
-
+        
         const date = document.createElement('div');
         date.className = 'note-date';
         date.textContent = note.date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric'
         });
-
+        
         wrap.appendChild(card);
         wrap.appendChild(date);
         grid.appendChild(wrap);
     });
 }
 
+/* ---------- Initialize ---------- */
 renderNotes();
+
+// Optional: Add a subtle reminder
+setTimeout(() => {
+    const unlockedCount = notesData.filter((_, i) => isUnlocked(i)).length;
+    if (unlockedCount > 0 && unlockedCount < TOTAL_DAYS) {
+        console.log(`💝 ${unlockedCount} of ${TOTAL_DAYS} notes unlocked for Charlotte!`);
+    }
+}, 1000);
 </script>
 
 </body>
